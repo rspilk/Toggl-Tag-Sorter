@@ -21,7 +21,7 @@
 import urllib2, base64, simplejson, time, optparse,sys,datetime
 
 global username
-username = ### Enter your toggl api token here ###
+username = ### API TOKEN GOES HERE ###
 global password 
 password = 'api_token'
 
@@ -67,9 +67,13 @@ quick = options.quick
 
 if quick:
   def whichDay(dayPassed):
+    todayExplicit = 0
     global startDate, endDate, startTime, endTime
     day = datetime.date(int(currentDate.split('-')[0]),int(currentDate.split('-')[1]),int(currentDate.split('-')[2]))
     Year,WeekNum,DOW = day.isocalendar()
+    if dayPassed.title() == 'Today':
+      todayExplicit = 1
+      dayDict[dayPassed.title()] = DOW
     try:
       offset = DOW - dayDict[dayPassed.title()]
     except:
@@ -83,7 +87,7 @@ if quick:
     startTime = midnight
     endTime = '23:59:59'
     print("Getting time information from "+dayPassed.title())
-    if offset == 0:
+    if offset == 0 and todayExplicit != 1:
       print("Hey, that's today!")
     if dayPassed == 'saturday' or dayPassed == 'sunday':
       print("You shouldn't be working so hard!")
@@ -142,20 +146,13 @@ def countHours(togglData, tag):
   for i in range(length):
     for j in range(len(togglData['data'][i]['tag_names'])):
       if tag in togglData['data'][i]['tag_names'][j]:
-        if togglData['data'][i]['duration'] < 0:                     # I need to identify what happenes to the duration tag on an incident
-          last_start = togglData['data'][length-1]['start']          # so that I can better fix this if statement. Effectively, the duration
-          last_start = last_start.split('T')                         # number is messed up due to there being an incorrect stop date entered
-          last_start_time = last_start[1].split('-')                 # (it is in flux). The if statement fixes that issue if it can be identified. 
-          l = splitTime(last_start_time[0])                          # Perhaps looking to see if stop_time=''.
-          l = int(l[0])*3600 + int(l[1])*60 + int(l[2])        
-          c = splitTime(currentTime)
-          c = int(c[0])*3600 + int(c[1])*60 + int(c[2])        
-          new = c - l
-          togglData['data'][i]['duration'] = new
+        if togglData['data'][i]['duration'] < 0:                                 # API fills duration of currently running task as negative
+          curEpoch = float(time.strftime('%s'))                                  # seconds since epoch. Adding this to the current time gives
+          durEpoch = float(togglData['data'][i]['duration'])                     # the correct duration.
+          togglData['data'][i]['duration'] = curEpoch + durEpoch
         timeCount['withTag'] += togglData['data'][i]['duration']
     if togglData['data'][i]['tag_names'] == []:
       timeCount['nonTag'] += togglData['data'][i]['duration']
-        
   timeCount['withTag'] = timeCount['withTag']/3600.0
   timeCount['nonTag'] = timeCount['nonTag']/3600.0
   return timeCount
