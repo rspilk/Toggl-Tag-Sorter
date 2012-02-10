@@ -1,12 +1,19 @@
 This is the README. I am making this in about 10 seconds.
 
-I wrote this because I use toggl to track my time at work, however in order to report this time I need to sort it into a few certain categories. I use the tags to accomplish this.
+I wrote this because I use toggl to track my time at work, however in order
+to report this time I need to sort it into a few certain categories. I use the
+tags to accomplish this.
 
-Basically, -1 gives the first tag (defaults are what i use), -2 is the other default. There are also quick methods. -q yesterday gives yesterday's time. -q monday for monday, etc.
+Basically, -1 gives the first tag (defaults are what i use), -2 is the other
+default. There are also quick methods. -q yesterday gives yesterday's time.
+-q monday for monday, etc.
 
-I couldnt find anyone else who had done something like this, so I wrote my own. I hope somebody finds this useful. I am still working on this, but I figure since I was looking for something like this, perhaps someone else can find use in it.
+I couldnt find anyone else who had done something like this, so I wrote my own.
+I hope somebody finds this useful. I am still working on this, but I figure since
+I was looking for something like this, perhaps someone else can find use in it.
 
-I need to update the command line argument names, as they dont make any freakin sense. (eg, shortname for --end_time).
+I need to update the command line argument names, as they dont make any freakin sense.
+(eg, shortname for --end_time).
 
 additionally, you can also specify custom start,stop dates/times with the arguments.
 
