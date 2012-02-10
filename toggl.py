@@ -128,7 +128,7 @@ def makeURL(startDate, endDate, startTime, endTime):
 def getToggl(username, password, url):
   data = ''
   req = urllib2.Request(url)
-#  req = urllib2.Request(url, data, {"Content-type": "application/json"})  # Old v3 request. It appears v6 doesnt require content in header. Neat!
+#  req = urllib2.Request(url, data, {"Content-type": "application/json"})  # Old v3 request.
   auth_string = base64.encodestring('%s:%s' % (username, password)).strip()
   req.add_header("Authorization", "Basic %s" % auth_string)
   f = urllib2.urlopen(req)
