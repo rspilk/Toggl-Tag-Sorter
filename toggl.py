@@ -1,0 +1,215 @@
+#!/usr/bin/env python
+
+#    Toggl Api Grabber - Grabs and sorts toggl data based on tags
+#    Copyright (C) 2012 -  Tyler Spilker - Gonzaga University
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+
+import urllib2, base64, simplejson, time, optparse,sys,datetime
+
+global username
+username = ### Enter your toggl api token here ###
+global password 
+password = 'api_token'
+
+global midnight 
+midnight = "00:00:00"
+global currentTime 
+currentTime = time.strftime('%H:%M:%S')
+
+global almostMidnight
+almostMidnight = "23:59:59"
+
+global currentDate 
+currentDate = "20"+time.strftime('%y-%m-%d')
+
+global timeBlank
+timeBlank = 0
+
+global dayDict
+dayDict = {'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6,'Sunday':7}
+
+
+OP=optparse.OptionParser(description="Toggl data grabber. Please note that tags may overlap in time, currently only Admin, Ops and tagless are added together to form final total. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
+
+OP.add_option('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
+OP.add_option('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=currentDate)
+OP.add_option('-t', '--start_time', help="Start Time, default: midnight. Format: HH:MM:SS", dest="startTime", default=midnight)
+OP.add_option('-m', '--end_time', help="End Time, default: current time. Format: HH:MM:SS", dest="endTime", default=almostMidnight)
+OP.add_option('-1', '--tag1', help="Tag one, defaults to ADMINISTRATIVE, use tags to look for durations in certain areas", dest="tagOne", default="ADMINISTRATIVE")
+OP.add_option('-2', '--tag2', help="Tag two, defaults to OPERATIONS, use tags to look for durations in certain areas", dest="tagTwo", default="OPERATIONS")
+OP.add_option('-3', '--tag3', help="Tag three, default is None.", dest="tagThree", default=None)
+OP.add_option('-q', '--quick', help="Shortcuts for quick/most used commands; Current commands: yesterday, ", dest="quick", default=None)
+
+options,args=OP.parse_args()
+
+startDate = options.startDate
+endDate = options.endDate
+startTime = options.startTime
+endTime = options.endTime
+tagOne = options.tagOne
+tagTwo = options.tagTwo
+tagThree = options.tagThree
+quick = options.quick
+
+if quick:
+  def whichDay(dayPassed):
+    global startDate, endDate, startTime, endTime
+    day = datetime.date(int(currentDate.split('-')[0]),int(currentDate.split('-')[1]),int(currentDate.split('-')[2]))
+    Year,WeekNum,DOW = day.isocalendar()
+    try:
+      offset = DOW - dayDict[dayPassed.title()]
+    except:
+      print("You have entered an invalid quick command, please try again")
+      sys.exit()
+    timeDelta = datetime.timedelta(offset)
+    d = datetime.date.today()
+    returnDate = d - timeDelta
+    startDate = str(returnDate.year)+"-"+str(returnDate.month)+"-"+str(returnDate.day)
+    endDate = str(returnDate.year)+"-"+str(returnDate.month)+"-"+str(returnDate.day)
+    startTime = midnight
+    endTime = '23:59:59'
+    print("Getting time information from "+dayPassed.title())
+    if offset == 0:
+      print("Hey, that's today!")
+    if dayPassed == 'saturday' or dayPassed == 'sunday':
+      print("You shouldn't be working so hard!")
+
+  def yesterday():
+    global startDate, endDate, startTime, endTime
+    startDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
+    endDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
+    startTime = midnight
+    endTime = '23:59:59'
+    print("Showing Time for yesterday")
+
+  quick = str.lower(quick)
+  if quick == 'yesterday':
+    yesterday()
+  else:
+    whichDay(quick)
+
+
+
+def splitTime(time):
+  time = time.split(':')
+  return time
+
+
+def makeURL(startDate, endDate, startTime, endTime):
+  startTime = splitTime(startTime)
+  startHour = startTime[0]
+  startMinute = startTime[1]
+  startSecond = startTime[2]
+  
+  endTime = splitTime(endTime)
+  endHour = endTime[0]
+  endMinute = endTime[1]
+  endSecond = endTime[2]
+    
+  json_current_time = "?start_date="+startDate+"T"+startHour+"%3A"+startMinute+"%3A"+startSecond+"-08%3A00"+"&end_date="+endDate+"T"+endHour+"%3A"+endMinute+"%3A"+endSecond+"-08%3A00"
+  url = 'https://www.toggl.com/api/v6/time_entries.json'+json_current_time
+#  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time  # Old v3 of api. How was this still working, wont respond to curl
+  return url
+
+def getToggl(username, password, url):
+  data = ''
+  req = urllib2.Request(url)
+#  req = urllib2.Request(url, data, {"Content-type": "application/json"})  # Old v3 request. It appears v6 doesnt require content in header. Neat!
+  auth_string = base64.encodestring('%s:%s' % (username, password)).strip()
+  req.add_header("Authorization", "Basic %s" % auth_string)
+  f = urllib2.urlopen(req)
+  response = f.read()
+  formatted = simplejson.loads(response)
+  return formatted
+
+def countHours(togglData, tag):
+  length = len(togglData['data'])
+  timeCount = {"withTag":0,"nonTag":0}
+  for i in range(length):
+    for j in range(len(togglData['data'][i]['tag_names'])):
+      if tag in togglData['data'][i]['tag_names'][j]:
+        if togglData['data'][i]['duration'] < 0:                     # I need to identify what happenes to the duration tag on an incident
+          last_start = togglData['data'][length-1]['start']          # so that I can better fix this if statement. Effectively, the duration
+          last_start = last_start.split('T')                         # number is messed up due to there being an incorrect stop date entered
+          last_start_time = last_start[1].split('-')                 # (it is in flux). The if statement fixes that issue if it can be identified. 
+          l = splitTime(last_start_time[0])                          # Perhaps looking to see if stop_time=''.
+          l = int(l[0])*3600 + int(l[1])*60 + int(l[2])        
+          c = splitTime(currentTime)
+          c = int(c[0])*3600 + int(c[1])*60 + int(c[2])        
+          new = c - l
+          togglData['data'][i]['duration'] = new
+        timeCount['withTag'] += togglData['data'][i]['duration']
+    if togglData['data'][i]['tag_names'] == []:
+      timeCount['nonTag'] += togglData['data'][i]['duration']
+        
+  timeCount['withTag'] = timeCount['withTag']/3600.0
+  timeCount['nonTag'] = timeCount['nonTag']/3600.0
+  return timeCount
+
+
+def printTimes():
+  print("Current Time : "+currentTime)
+  print("Current Date : "+currentDate)
+  print("From: "+startDate+" "+startTime)
+  print("To: "+endDate+" "+endTime)
+  print("")
+  print("%.2f"%tag1Time['withTag']+" : Total "+tagOne+" Time")
+  print("%.2f"%tag2Time['withTag']+" : Total "+tagTwo+" Time")
+  if tagThree != None:
+    print("%.2f"%tag3Time+" : Total "+tagThree+" Time")
+  print("%.2f"%tag1Time['nonTag']+" : Total Tagless Time")
+  print("%.2f"%totalTime+" : Total Duration")
+  print("--------------------------------")
+
+togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
+tag1Time = countHours(togglData, tagOne)
+tag2Time = countHours(togglData, tagTwo)
+totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']
+if tagThree != None:
+  tag3Time = countHours(togglData, tagThree)['withTag']
+
+printTimes()
+
+""" For the sake of clarity, here is an example response for a single time entry from toggl, so I dont have to keep finding it. This would be nameofstoredblockoftext['data'][0]
+{
+      "data": [
+          {
+              "duration": 900,
+              "billable": true,
+              "workspace": {
+                  "name": "john.doe@gmail.com's workspace",
+                  "id": 31366
+              },
+              "stop": "2010-02-12T15:51:19+02:00",
+              "id": 2913477,
+              "project": {
+                  "name": "Important project",
+                  "id": 189657,
+                  "client_project_name": "Important project"
+              },
+              "start": "2010-02-12T15:35:47+02:00",
+              "tag_names": [
+                  "API"                                                         #This is where I am looking for the tags
+              ],
+              "description": "Todays time entry",
+              "ignore_start_and_stop": false
+          }
+      ],
+      "related_data_updated_at": "2010-06-29T11:17:19+03:00"
+}
+
+"""
