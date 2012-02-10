@@ -6,7 +6,17 @@ tags to accomplish this.
 
 Basically, -1 gives the first tag (defaults are what i use), -2 is the other
 default. There are also quick methods. -q yesterday gives yesterday's time.
--q monday for monday, etc.
+-q monday for monday, etc. Entering no tag gives today's totals
+
+Based on whatever day is entered, it will calculate the totals for the given tags.
+It will also add in untagged entries too. These are added and given a full total.
+
+
+There is some tagging confusion too as something with bultiple tags could possibly 
+counted more than once. choosing your tags wisely helps with this. It works for how
+I use toggl since I only ever use one Main category for tags and then a subtag which 
+only indicates how much of that particular task i did. For raw work totals I use
+main tags.
 
 I couldnt find anyone else who had done something like this, so I wrote my own.
 I hope somebody finds this useful. I am still working on this, but I figure since
