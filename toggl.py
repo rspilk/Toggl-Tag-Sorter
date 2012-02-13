@@ -22,8 +22,14 @@ import urllib2, base64, simplejson, time, optparse,sys,datetime
 
 # -- Declaring Global Vars -- #
 global username
-username = ### API TOKEN GOES HERE ###
-global password 
+try:
+  username = token ### API TOKEN GOES HERE ###
+except:
+  print("Error: No Toggl API Token Entered. Line # 26")
+  print("You must first edit toggl.py and change 'username = token ### API TOKEN GOES HERE ###' to (example) 'username = 'abc123def456ghi789' ' ")
+  print(" ")
+  print("The token can be found on the Toggl webiste under the user's Profile")
+  sys.exit()
 password = 'api_token'
 
 global midnight 
