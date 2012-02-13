@@ -166,8 +166,8 @@ def countHours(togglData, tag):                                         # The me
 def printTimes():                                                                # Prints the times in a format. Not necessary, just allows me to use the time easily
   print("Current Time : "+currentTime)
   print("Current Date : "+currentDate)
-  print("From: "+startDate+" "+startTime)
-  print("To: "+endDate+" "+endTime)
+  print("From : "+startDate+" "+startTime)
+  print("To   : "+endDate+" "+endTime)
   print("")
   print("%.2f"%tag1Time['withTag']+" : Total "+tagOne+" Time")
   print("%.2f"%tag2Time['withTag']+" : Total "+tagTwo+" Time")
