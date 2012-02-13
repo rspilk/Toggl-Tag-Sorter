@@ -17,9 +17,10 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-
+# -- Imports -- #
 import urllib2, base64, simplejson, time, optparse,sys,datetime
 
+# -- Declaring Global Vars -- #
 global username
 username = ### API TOKEN GOES HERE ###
 global password 
@@ -42,7 +43,7 @@ timeBlank = 0
 global dayDict
 dayDict = {'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6,'Sunday':7}
 
-
+# -- Command Line Options -- #
 OP=optparse.OptionParser(description="Toggl data grabber. Please note that tags may overlap in time, currently only Admin, Ops and tagless are added together to form final total. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
 
 OP.add_option('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
@@ -54,6 +55,8 @@ OP.add_option('-2', '--tag2', help="Tag two, defaults to OPERATIONS, use tags to
 OP.add_option('-3', '--tag3', help="Tag three, default is None.", dest="tagThree", default=None)
 OP.add_option('-q', '--quick', help="Shortcuts for quick/most used commands; Current commands: yesterday, ", dest="quick", default=None)
 
+
+# -- Parsing passed arguments to variables -- #
 options,args=OP.parse_args()
 
 startDate = options.startDate
@@ -65,9 +68,11 @@ tagTwo = options.tagTwo
 tagThree = options.tagThree
 quick = options.quick
 
-if quick:
-  def whichDay(dayPassed):
-    todayExplicit = 0
+
+
+if quick:                                               # This handles if there is a -q passed to it (quick commands)
+  def whichDay(dayPassed):                              # whichDay determines based on the day entered, how it
+    todayExplicit = 0                                   # relates to the current day. Does the math for you
     global startDate, endDate, startTime, endTime
     day = datetime.date(int(currentDate.split('-')[0]),int(currentDate.split('-')[1]),int(currentDate.split('-')[2]))
     Year,WeekNum,DOW = day.isocalendar()
@@ -92,7 +97,7 @@ if quick:
     if dayPassed == 'saturday' or dayPassed == 'sunday':
       print("You shouldn't be working so hard!")
 
-  def yesterday():
+  def yesterday():                                                # Just deals with yesterday. Could collapse to whichDay in future I guess
     global startDate, endDate, startTime, endTime
     startDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
     endDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
@@ -100,7 +105,7 @@ if quick:
     endTime = '23:59:59'
     print("Showing Time for yesterday")
 
-  quick = str.lower(quick)
+  quick = str.lower(quick)                                        # makes passed -q arg into lower case to avoid case confusionm
   if quick == 'yesterday':
     yesterday()
   else:
@@ -108,12 +113,12 @@ if quick:
 
 
 
-def splitTime(time):
+def splitTime(time):                                              # splits passed time into list of ['hour','minute','second']
   time = time.split(':')
   return time
 
 
-def makeURL(startDate, endDate, startTime, endTime):
+def makeURL(startDate, endDate, startTime, endTime):              # creates the url to pass JSON request to based on date values
   startTime = splitTime(startTime)
   startHour = startTime[0]
   startMinute = startTime[1]
@@ -129,7 +134,7 @@ def makeURL(startDate, endDate, startTime, endTime):
 #  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time  # Old v3 of api. How was this still working, wont respond to curl
   return url
 
-def getToggl(username, password, url):
+def getToggl(username, password, url):                                   # Grabs JSON and formats it
   data = ''
   req = urllib2.Request(url)
 #  req = urllib2.Request(url, data, {"Content-type": "application/json"})  # Old v3 request.
@@ -140,7 +145,7 @@ def getToggl(username, password, url):
   formatted = simplejson.loads(response)
   return formatted
 
-def countHours(togglData, tag):
+def countHours(togglData, tag):                                         # The meat and potatoes. Counts time based on tags
   length = len(togglData['data'])
   timeCount = {"withTag":0,"nonTag":0}
   for i in range(length):
@@ -158,7 +163,7 @@ def countHours(togglData, tag):
   return timeCount
 
 
-def printTimes():
+def printTimes():                                                                # Prints the times in a format. Not necessary, just allows me to use the time easily
   print("Current Time : "+currentTime)
   print("Current Date : "+currentDate)
   print("From: "+startDate+" "+startTime)
@@ -171,12 +176,12 @@ def printTimes():
   print("%.2f"%tag1Time['nonTag']+" : Total Tagless Time")
   print("%.2f"%totalTime+" : Total Duration")
   print("--------------------------------")
-
+# -- Run the program. Im sure there is a nicer way of doing this maybe? -- #
 togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
 tag1Time = countHours(togglData, tagOne)
 tag2Time = countHours(togglData, tagTwo)
 totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']
-if tagThree != None:
+if tagThree != None:                                                      # Doesnt look for tag3 if it wasnt entered
   tag3Time = countHours(togglData, tagThree)['withTag']
 
 printTimes()
