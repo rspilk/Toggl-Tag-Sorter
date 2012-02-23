@@ -10,7 +10,7 @@ Based on whatever day is entered, it will calculate the totals for the given tag
 It will also add in untagged entries too. These are added and given a full total.
 
 
-There is some tagging confusion too as something with bultiple tags could possibly 
+There is some tagging confusion too as something with multiple tags could possibly 
 counted more than once. choosing your tags wisely helps with this. It works for how
 I use toggl since I only ever use one Main category for tags and then a subtag which 
 only indicates how much of that particular task i did. For raw work totals I use
@@ -21,7 +21,7 @@ I hope somebody finds this useful. I am still working on this, but I figure sinc
 I was looking for something like this, perhaps someone else can find use in it.
 
 I need to update the command line argument names, as they dont make any freakin sense.
-(eg, shortname for --end_time).
+(eg, shortname for --end_time is -m).
 
 additionally, you can also specify custom start,stop dates/times with the arguments.
 
