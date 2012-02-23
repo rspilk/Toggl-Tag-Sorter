@@ -30,6 +30,7 @@ except:
   print(" ")
   print("The token can be found on the Toggl webiste under the user's Profile")
   sys.exit()
+global password 
 password = 'api_token'
 
 global midnight 
@@ -57,8 +58,10 @@ OP.add_option('-e', '--end_date', help="End Date, default: Current Date. Format:
 OP.add_option('-t', '--start_time', help="Start Time, default: midnight. Format: HH:MM:SS", dest="startTime", default=midnight)
 OP.add_option('-m', '--end_time', help="End Time, default: current time. Format: HH:MM:SS", dest="endTime", default=almostMidnight)
 OP.add_option('-1', '--tag1', help="Tag one, defaults to ADMINISTRATIVE, use tags to look for durations in certain areas", dest="tagOne", default="ADMINISTRATIVE")
-OP.add_option('-2', '--tag2', help="Tag two, defaults to OPERATIONS, use tags to look for durations in certain areas", dest="tagTwo", default="OPERATIONS")
-OP.add_option('-3', '--tag3', help="Tag three, default is None.", dest="tagThree", default=None)
+OP.add_option('-2', '--tag2', help="Tag two, defaults to Meeting, use tags to look for durations in certain areas", dest="tagTwo", default="MEETING")
+OP.add_option('-3', '--tag3', help="Tag three, default is Professional Development.", dest="tagThree", default="PROFESSIONAL DEVELOPMENT")
+OP.add_option('-4', '--tag4', help="Tag three, default is Operations.", dest="tagFour", default="OPERATIONS")
+OP.add_option('-5', '--tag5', help="Tag three, default is None.", dest="tagFive", default=None)
 OP.add_option('-q', '--quick', help="Shortcuts for quick/most used commands; Current commands: yesterday, ", dest="quick", default=None)
 
 
@@ -72,6 +75,9 @@ endTime = options.endTime
 tagOne = options.tagOne
 tagTwo = options.tagTwo
 tagThree = options.tagThree
+tagFour = options.tagFour
+tagFive = options.tagFive
+
 quick = options.quick
 
 
@@ -109,9 +115,9 @@ if quick:                                               # This handles if there 
     endDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
     startTime = midnight
     endTime = '23:59:59'
-    print("Showing Time for yesterday")
+    print("Showing Time for Yesterday")
 
-  quick = str.lower(quick)                                        # makes passed -q arg into lower case to avoid case confusionm
+  quick = str.lower(quick)                                        # makes passed -q arg into lower case to avoid case confusion
   if quick == 'yesterday':
     yesterday()
   else:
@@ -156,7 +162,7 @@ def countHours(togglData, tag):                                         # The me
   timeCount = {"withTag":0,"nonTag":0}
   for i in range(length):
     for j in range(len(togglData['data'][i]['tag_names'])):
-      if tag in togglData['data'][i]['tag_names'][j]:
+      if str.upper(tag) in togglData['data'][i]['tag_names'][j]:
         if togglData['data'][i]['duration'] < 0:                                 # API fills duration of currently running task as negative
           curEpoch = float(time.strftime('%s'))                                  # seconds since epoch. Adding this to the current time gives
           durEpoch = float(togglData['data'][i]['duration'])                     # the correct duration.
@@ -177,8 +183,10 @@ def printTimes():                                                               
   print("")
   print("%.2f"%tag1Time['withTag']+" : Total "+tagOne+" Time")
   print("%.2f"%tag2Time['withTag']+" : Total "+tagTwo+" Time")
-  if tagThree != None:
-    print("%.2f"%tag3Time+" : Total "+tagThree+" Time")
+  print("%.2f"%tag3Time['withTag']+" : Total "+str.upper(tagThree)+" Time")
+  print("%.2f"%tag4Time['withTag']+" : Total "+str.upper(tagFour)+" Time")
+  if tagFive != None:
+    print("%.2f"%tag5Time+" : Total "+str.upper(tagFive)+" Time")
   print("%.2f"%tag1Time['nonTag']+" : Total Tagless Time")
   print("%.2f"%totalTime+" : Total Duration")
   print("--------------------------------")
@@ -186,9 +194,18 @@ def printTimes():                                                               
 togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
 tag1Time = countHours(togglData, tagOne)
 tag2Time = countHours(togglData, tagTwo)
-totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']
-if tagThree != None:                                                      # Doesnt look for tag3 if it wasnt entered
-  tag3Time = countHours(togglData, tagThree)['withTag']
+tag3Time = countHours(togglData, str.lower(tagThree))
+tag4Time = countHours(togglData, str.lower(tagFour))
+try:
+  tag5Time = countHours(togglData, str.lower(tagFive))
+except:
+  pass
+try:
+  totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']+tag3Time['withTag']+tag4Time['withTag']+tag5Time['withTag']
+except:
+  totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']+tag3Time['withTag']+tag4Time['withTag']
+if tagFive != None:                                                      # Doesnt look for tag3 if it wasnt entered
+  tag5Time = countHours(togglData, tagFive)['withTag']
 
 printTimes()
 
