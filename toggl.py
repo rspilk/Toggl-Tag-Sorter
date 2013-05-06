@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #    Toggl Api Grabber - Grabs and sorts toggl data based on tags
-#    Copyright (C) 2012 -  Tyler Spilker - Gonzaga University
+#    Copyright (C) 2013 -  Tyler Spilker - Gonzaga University
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import urllib2, base64, simplejson, time, optparse,sys,datetime
 # -- Declaring Global Vars -- #
 global username
 try:
-  username = token ### API TOKEN GOES HERE ###
+  username = token ### API TOKEN GOES HERE AS STRING###
 except:
   print("Error: No Toggl API Token Entered. Line # 26")
   print("You must first edit toggl.py and change 'username = token ### API TOKEN GOES HERE ###' to (example) 'username = 'abc123def456ghi789' ' ")
@@ -54,7 +54,7 @@ dayDict = {'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturda
 OP=optparse.OptionParser(description="Toggl data grabber. Please note that tags may overlap in time, currently only Admin, Ops and tagless are added together to form final total. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
 
 OP.add_option('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
-OP.add_option('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=currentDate)
+OP.add_option('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=None)
 OP.add_option('-t', '--start_time', help="Start Time, default: midnight. Format: HH:MM:SS", dest="startTime", default=midnight)
 OP.add_option('-m', '--end_time', help="End Time, default: current time. Format: HH:MM:SS", dest="endTime", default=almostMidnight)
 OP.add_option('-1', '--tag1', help="Tag one, defaults to ADMINISTRATIVE, use tags to look for durations in certain areas", dest="tagOne", default="ADMINISTRATIVE")
@@ -80,6 +80,9 @@ tagFive = options.tagFive
 
 quick = options.quick
 
+# This fixes the issue where the endDate remains the current run date. I need to fix this again as I lost my original code.
+if endDate == None:
+  endDate = startDate
 
 
 if quick:                                               # This handles if there is a -q passed to it (quick commands)
@@ -100,7 +103,8 @@ if quick:                                               # This handles if there 
     d = datetime.date.today()
     returnDate = d - timeDelta
     startDate = str(returnDate.year)+"-"+str(returnDate.month)+"-"+str(returnDate.day)
-    endDate = str(returnDate.year)+"-"+str(returnDate.month)+"-"+str(returnDate.day)
+    if endDate:
+      endDate = str(returnDate.year)+"-"+str(returnDate.month)+"-"+str(returnDate.day)
     startTime = midnight
     endTime = '23:59:59'
     print("Getting time information from "+dayPassed.title())
@@ -176,8 +180,7 @@ def countHours(togglData, tag):                                         # The me
 
 
 def printTimes():                                                                # Prints the times in a format. Not necessary, just allows me to use the time easily
-  print("Current Time : "+currentTime)
-  print("Current Date : "+currentDate)
+  print(currentDate)
   print("From : "+startDate+" "+startTime)
   print("To   : "+endDate+" "+endTime)
   print("")
