@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #    Toggl Api Grabber - Grabs and sorts toggl data based on tags
-#    Copyright (C) 2013 -  Tyler Spilker - Gonzaga University
+#    Copyright (C) 2012 -  Tyler Spilker - Gonzaga University
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,12 +18,12 @@
 
 
 # -- Imports -- #
-import urllib2, base64, simplejson, time, optparse,sys,datetime
+import urllib2, base64, simplejson, time, optparse,sys,datetime, json
 
 # -- Declaring Global Vars -- #
 global username
 try:
-  username = token ### API TOKEN GOES HERE AS STRING###
+  username =  ### API TOKEN GOES HERE ###
 except:
   print("Error: No Toggl API Token Entered. Line # 26")
   print("You must first edit toggl.py and change 'username = token ### API TOKEN GOES HERE ###' to (example) 'username = 'abc123def456ghi789' ' ")
@@ -85,9 +85,9 @@ if endDate == None:
   endDate = startDate
 
 
-if quick:                                               # This handles if there is a -q passed to it (quick commands)
-  def whichDay(dayPassed):                              # whichDay determines based on the day entered, how it
-    todayExplicit = 0                                   # relates to the current day. Does the math for you
+if quick:                                                                   # This handles if there is a -q passed to it (quick commands)
+  def whichDay(dayPassed):                                                  # whichDay determines based on the day entered, how it
+    todayExplicit = 0                                                       # relates to the current day. Does the math for you
     global startDate, endDate, startTime, endTime
     day = datetime.date(int(currentDate.split('-')[0]),int(currentDate.split('-')[1]),int(currentDate.split('-')[2]))
     Year,WeekNum,DOW = day.isocalendar()
@@ -113,7 +113,7 @@ if quick:                                               # This handles if there 
     if dayPassed == 'saturday' or dayPassed == 'sunday':
       print("You shouldn't be working so hard!")
 
-  def yesterday():                                                # Just deals with yesterday. Could collapse to whichDay in future I guess
+  def yesterday():                                                          # Just deals with yesterday. Could collapse to whichDay in future I guess
     global startDate, endDate, startTime, endTime
     startDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
     endDate = "20"+time.strftime('%y-%m-')+str(int(currentDate.split('-')[2])-1)
@@ -121,7 +121,7 @@ if quick:                                               # This handles if there 
     endTime = '23:59:59'
     print("Showing Time for Yesterday")
 
-  quick = str.lower(quick)                                        # makes passed -q arg into lower case to avoid case confusion
+  quick = str.lower(quick)                                                  # makes passed -q arg into lower case to avoid case confusion
   if quick == 'yesterday':
     yesterday()
   else:
@@ -129,12 +129,12 @@ if quick:                                               # This handles if there 
 
 
 
-def splitTime(time):                                              # splits passed time into list of ['hour','minute','second']
+def splitTime(time):                                                        # splits passed time into list of ['hour','minute','second']
   time = time.split(':')
   return time
 
 
-def makeURL(startDate, endDate, startTime, endTime):              # creates the url to pass JSON request to based on date values
+def makeURL(startDate, endDate, startTime, endTime):                        # creates the url to pass JSON request to based on date values
   startTime = splitTime(startTime)
   startHour = startTime[0]
   startMinute = startTime[1]
@@ -146,98 +146,88 @@ def makeURL(startDate, endDate, startTime, endTime):              # creates the 
   endSecond = endTime[2]
     
   json_current_time = "?start_date="+startDate+"T"+startHour+"%3A"+startMinute+"%3A"+startSecond+"-08%3A00"+"&end_date="+endDate+"T"+endHour+"%3A"+endMinute+"%3A"+endSecond+"-08%3A00"
-  url = 'https://www.toggl.com/api/v6/time_entries.json'+json_current_time
-#  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time  # Old v3 of api. How was this still working, wont respond to curl
+  url = 'https://www.toggl.com/api/v8/time_entries'+json_current_time
+#  url = 'https://www.toggl.com/api/v6/time_entries.json'+json_current_time
+#  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time         # Old v3 of api. How was this still working, wont respond to curl
   return url
 
-def getToggl(username, password, url):                                   # Grabs JSON and formats it
-  data = ''
+def getToggl(username, password, url):                                      # Grabs JSON and formats it
+  data = ['']
+  header = {'Content-type': 'application/json'}
   req = urllib2.Request(url)
-#  req = urllib2.Request(url, data, {"Content-type": "application/json"})  # Old v3 request.
+#  req = urllib2.Request(url, data, {"Content-type": "application/json"})   # Old v3 request.
   auth_string = base64.encodestring('%s:%s' % (username, password)).strip()
   req.add_header("Authorization", "Basic %s" % auth_string)
   f = urllib2.urlopen(req)
   response = f.read()
   formatted = simplejson.loads(response)
   return formatted
+  
+def countHours(togglData):
+  Tags = {}
+  for entry in togglData:
+    tag = str.upper(entry['tags'][0])
+    if tag in Tags:                                                         # If the tag exists in the dictionary Tags, append
+      if entry['duration'] > 0:
+        if tag == '':
+          Tags['TAGLESS'] += entry['duration']
+        else:
+          Tags[tag] += entry['duration']
+      else:
+        durEpoch = float(entry['duration'])
+        curEpoch = float(time.strftime('%s'))
+        if tag == '':
+          Tags['TAGLESS'] += curEpoch + durEpoch
+        else:
+          Tags[tag] += curEpoch + durEpoch
+    else:                                                                   # If the tag doesn't exist in the dictionary Tags, just add it
+      if entry['duration'] > 0:
+        if tag == '':
+          Tags['TAGLESS'] = entry['duration']
+        else:
+          Tags[tag] = entry['duration']
+      else:
+        durEpoch = float(entry['duration'])
+        curEpoch = float(time.strftime('%s'))
+        if tag == '':
+          Tags['TAGLESS'] = curEpoch + durEpoch
+        else:
+          Tags[tag] = curEpoch + durEpoch        
+  for tag in Tags:
+    Tags[tag] = Tags[tag]/3600.0
+  return Tags
 
-def countHours(togglData, tag):                                         # The meat and potatoes. Counts time based on tags
-  length = len(togglData['data'])
-  timeCount = {"withTag":0,"nonTag":0}
-  for i in range(length):
-    for j in range(len(togglData['data'][i]['tag_names'])):
-      if str.upper(tag) in togglData['data'][i]['tag_names'][j]:
-        if togglData['data'][i]['duration'] < 0:                                 # API fills duration of currently running task as negative
-          curEpoch = float(time.strftime('%s'))                                  # seconds since epoch. Adding this to the current time gives
-          durEpoch = float(togglData['data'][i]['duration'])                     # the correct duration.
-          togglData['data'][i]['duration'] = curEpoch + durEpoch
-        timeCount['withTag'] += togglData['data'][i]['duration']
-    if togglData['data'][i]['tag_names'] == []:
-      timeCount['nonTag'] += togglData['data'][i]['duration']
-  timeCount['withTag'] = timeCount['withTag']/3600.0
-  timeCount['nonTag'] = timeCount['nonTag']/3600.0
-  return timeCount
-
-
-def printTimes():                                                                # Prints the times in a format. Not necessary, just allows me to use the time easily
-  print(currentDate)
+def printTimes():                                                           # Prints the times in a format. Not necessary, just allows me to use the time easily
+  d = time.strptime(startDate,'%Y-%m-%d')
+  doW = datetime.date(d.tm_year,d.tm_mon,d.tm_mday).strftime('%a')
+  print(startDate+ " " + doW)
   print("From : "+startDate+" "+startTime)
   print("To   : "+endDate+" "+endTime)
   print("")
-  print("%.2f"%tag1Time['withTag']+" : Total "+tagOne+" Time")
-  print("%.2f"%tag2Time['withTag']+" : Total "+tagTwo+" Time")
-  print("%.2f"%tag3Time['withTag']+" : Total "+str.upper(tagThree)+" Time")
-  print("%.2f"%tag4Time['withTag']+" : Total "+str.upper(tagFour)+" Time")
-  if tagFive != None:
-    print("%.2f"%tag5Time+" : Total "+str.upper(tagFive)+" Time")
-  print("%.2f"%tag1Time['nonTag']+" : Total Tagless Time")
+  for tag in tagTime:
+    print("%.2f"%tagTime[tag]+" : Total "+tag+" Time")
   print("%.2f"%totalTime+" : Total Duration")
   print("--------------------------------")
+  
+  
 # -- Run the program. Im sure there is a nicer way of doing this maybe? -- #
+
 togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
-tag1Time = countHours(togglData, tagOne)
-tag2Time = countHours(togglData, tagTwo)
-tag3Time = countHours(togglData, str.lower(tagThree))
-tag4Time = countHours(togglData, str.lower(tagFour))
-try:
-  tag5Time = countHours(togglData, str.lower(tagFive))
-except:
-  pass
-try:
-  totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']+tag3Time['withTag']+tag4Time['withTag']+tag5Time['withTag']
-except:
-  totalTime = tag1Time['withTag']+tag2Time['withTag']+tag1Time['nonTag']+tag3Time['withTag']+tag4Time['withTag']
-if tagFive != None:                                                      # Doesnt look for tag3 if it wasnt entered
-  tag5Time = countHours(togglData, tagFive)['withTag']
+if togglData == None:
+  print "No data recorded between "+startDate+" "+startTime+" and "+endDate+" "+endTime
+  print("--------------------------------")
+else:
+  tagTime = countHours(togglData)
+  totalTime = 0.0
+  for entry in tagTime:
+    totalTime += tagTime[entry]
+  printTimes()
 
-printTimes()
 
-""" For the sake of clarity, here is an example response for a single time entry from toggl, so I dont have to keep finding it. This would be nameofstoredblockoftext['data'][0]
-{
-      "data": [
-          {
-              "duration": 900,
-              "billable": true,
-              "workspace": {
-                  "name": "john.doe@gmail.com's workspace",
-                  "id": 31366
-              },
-              "stop": "2010-02-12T15:51:19+02:00",
-              "id": 2913477,
-              "project": {
-                  "name": "Important project",
-                  "id": 189657,
-                  "client_project_name": "Important project"
-              },
-              "start": "2010-02-12T15:35:47+02:00",
-              "tag_names": [
-                  "API"                                                         #This is where I am looking for the tags
-              ],
-              "description": "Todays time entry",
-              "ignore_start_and_stop": false
-          }
-      ],
-      "related_data_updated_at": "2010-06-29T11:17:19+03:00"
-}
 
-"""
+
+# Testing stuff #
+#print json.dumps(getToggl(username, password,makeURL(startDate, endDate, startTime, endTime)), separators=(',',':'), indent=4, sort_keys=True)
+#print getToggl(username, password,makeURL(startDate, endDate, startTime, endTime))
+#print makeURL(startDate, endDate, startTime, endTime)
+
