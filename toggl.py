@@ -23,7 +23,7 @@ import urllib2, base64, simplejson, time, optparse,sys,datetime, json
 # -- Declaring Global Vars -- #
 global username
 try:
-  username =  ### API TOKEN GOES HERE ###
+  username = token ### API TOKEN GOES HERE ###
 except:
   print("Error: No Toggl API Token Entered. Line # 26")
   print("You must first edit toggl.py and change 'username = token ### API TOKEN GOES HERE ###' to (example) 'username = 'abc123def456ghi789' ' ")
