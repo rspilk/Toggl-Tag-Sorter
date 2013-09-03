@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 #    Toggl Api Grabber - Grabs and sorts toggl data based on tags
-#    Copyright (C) 2012 -  Tyler Spilker - Gonzaga University
+#    Copyright (C) 2013 -  Tyler Spilker - Gonzaga University
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 
 # -- Imports -- #
-import urllib2, base64, simplejson, time, optparse,sys,datetime, json
+import urllib2, base64, simplejson, time, argparse,sys,datetime, json
 
 # -- Declaring Global Vars -- #
 global username
@@ -51,34 +51,24 @@ global dayDict
 dayDict = {'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6,'Sunday':7}
 
 # -- Command Line Options -- #
-OP=optparse.OptionParser(description="Toggl data grabber. Please note that tags may overlap in time, currently only Admin, Ops and tagless are added together to form final total. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
+ARG=argparse.ArgumentParser(description="Toggl data grabber. Please note that tags may overlap in time. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
 
-OP.add_option('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
-OP.add_option('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=None)
-OP.add_option('-t', '--start_time', help="Start Time, default: midnight. Format: HH:MM:SS", dest="startTime", default=midnight)
-OP.add_option('-m', '--end_time', help="End Time, default: current time. Format: HH:MM:SS", dest="endTime", default=almostMidnight)
-OP.add_option('-1', '--tag1', help="Tag one, defaults to ADMINISTRATIVE, use tags to look for durations in certain areas", dest="tagOne", default="ADMINISTRATIVE")
-OP.add_option('-2', '--tag2', help="Tag two, defaults to Meeting, use tags to look for durations in certain areas", dest="tagTwo", default="MEETING")
-OP.add_option('-3', '--tag3', help="Tag three, default is Professional Development.", dest="tagThree", default="PROFESSIONAL DEVELOPMENT")
-OP.add_option('-4', '--tag4', help="Tag three, default is Operations.", dest="tagFour", default="OPERATIONS")
-OP.add_option('-5', '--tag5', help="Tag three, default is None.", dest="tagFive", default=None)
-OP.add_option('-q', '--quick', help="Shortcuts for quick/most used commands; Current commands: yesterday, ", dest="quick", default=None)
+ARG.add_argument('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
+ARG.add_argument('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=None)
+ARG.add_argument('-t', '--start_time', help="Start Time, default: midnight. Format: HH:MM:SS", dest="startTime", default=midnight)
+ARG.add_argument('-m', '--end_time', help="End Time, default: current time. Format: HH:MM:SS", dest="endTime", default=almostMidnight)
+ARG.add_argument('-q', '--quick', help="Shortcuts for quick/most used commands; Current commands: yesterday, ", dest="quick", default=None)
 
 
 # -- Parsing passed arguments to variables -- #
-options,args=OP.parse_args()
+args=ARG.parse_args()
 
-startDate = options.startDate
-endDate = options.endDate
-startTime = options.startTime
-endTime = options.endTime
-tagOne = options.tagOne
-tagTwo = options.tagTwo
-tagThree = options.tagThree
-tagFour = options.tagFour
-tagFive = options.tagFive
+startDate = args.startDate
+endDate = args.endDate
+startTime = args.startTime
+endTime = args.endTime
 
-quick = options.quick
+quick = args.quick
 
 # This fixes the issue where the endDate remains the current run date. I need to fix this again as I lost my original code.
 if endDate == None:
