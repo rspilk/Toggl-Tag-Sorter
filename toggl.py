@@ -51,7 +51,13 @@ global dayDict
 dayDict = {'Monday':1,'Tuesday':2,'Wednesday':3,'Thursday':4,'Friday':5,'Saturday':6,'Sunday':7}
 
 # -- Command Line Options -- #
-ARG=argparse.ArgumentParser(description="Toggl data grabber. Please note that tags may overlap in time. Accuracy is not ensured if you tag differently than I do",epilog="This program does not scrub inputs yet. Please be careful when entering things. Double check your format to the -h before hitting enter.")
+ARG=argparse.ArgumentParser(\
+      description="Toggl data grabber. Please note that tags may \
+          overlap in time. Accuracy is not ensured if you tag \
+          differently than I do",\
+      epilog="This program does not scrub inputs yet. Please be careful \
+          when entering things. Double check your format to the -h \
+          before hitting enter.")
 
 ARG.add_argument('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
 ARG.add_argument('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=None)
