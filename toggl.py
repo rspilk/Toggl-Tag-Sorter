@@ -162,11 +162,14 @@ def getToggl(username, password, url):                                      # Gr
   response = f.read()
   formatted = simplejson.loads(response)
   return formatted
-  
+
 def countHours(togglData):
   Tags = {}
   for entry in togglData:
-    tag = str.upper(entry['tags'][0])
+    for i in entry['tags']:
+      if i.isupper():
+        tag = i
+#    tag = str.upper(entry['tags'][0])
     if tag in Tags:                                                         # If the tag exists in the dictionary Tags, append
       if entry['duration'] > 0:
         if tag == '':
@@ -197,6 +200,9 @@ def countHours(togglData):
     Tags[tag] = Tags[tag]/3600.0
   return Tags
 
+def line():
+  print("-------------------------------------")
+
 def printTimes():                                                           # Prints the times in a format. Not necessary, just allows me to use the time easily
   d = time.strptime(startDate,'%Y-%m-%d')
   doW = datetime.date(d.tm_year,d.tm_mon,d.tm_mday).strftime('%a')
@@ -205,17 +211,18 @@ def printTimes():                                                           # Pr
   print("To   : "+endDate+" "+endTime)
   print("")
   for tag in tagTime:
-    print("%.2f"%tagTime[tag]+" : Total "+tag+" Time")
+    print("%.2f"%tagTime[tag]+" : "+tag+" Time")
   print("%.2f"%totalTime+" : Total Duration")
-  print("--------------------------------")
+  line()
   
   
 # -- Run the program. Im sure there is a nicer way of doing this maybe? -- #
 
 togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
-if togglData == None:
+
+if togglData == None or togglData == []:
   print "No data recorded between "+startDate+" "+startTime+" and "+endDate+" "+endTime
-  print("--------------------------------")
+  line()
 else:
   tagTime = countHours(togglData)
   totalTime = 0.0
