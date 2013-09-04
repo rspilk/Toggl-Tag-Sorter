@@ -143,8 +143,8 @@ def makeURL(startDate, endDate, startTime, endTime):                        # cr
     
   json_current_time = "?start_date="+startDate+"T"+startHour+"%3A"+startMinute+"%3A"+startSecond+"-08%3A00"+"&end_date="+endDate+"T"+endHour+"%3A"+endMinute+"%3A"+endSecond+"-08%3A00"
   url = 'https://www.toggl.com/api/v8/time_entries'+json_current_time
-#  url = 'https://www.toggl.com/api/v6/time_entries.json'+json_current_time
-#  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time         # Old v3 of api. How was this still working, wont respond to curl
+#  url = 'https://www.toggl.com/api/v6/time_entries.json'+json_current_time # Old v6 of api.
+#  url = 'http://www.toggl.com/api/v3/tasks.json'+json_current_time         # Old v3 of api.
   return url
 
 def getToggl(username, password, url):                                      # Grabs JSON and formats it
@@ -161,11 +161,11 @@ def getToggl(username, password, url):                                      # Gr
 
 def countHours(togglData):
   Tags = {}
+  tag = ''
   for entry in togglData:
     for i in entry['tags']:
-      if i.isupper():
+      if i.isupper() or i == '':
         tag = i
-#    tag = str.upper(entry['tags'][0])
     if tag in Tags:                                                         # If the tag exists in the dictionary Tags, append
       if entry['duration'] > 0:
         if tag == '':
@@ -213,19 +213,20 @@ def printTimes():                                                           # Pr
   
   
 # -- Run the program. Im sure there is a nicer way of doing this maybe? -- #
+try:
+  togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
 
-togglData = getToggl(username,password, makeURL(startDate, endDate, startTime, endTime))
-
-if togglData == None or togglData == []:
-  print "No data recorded between "+startDate+" "+startTime+" and "+endDate+" "+endTime
-  line()
-else:
-  tagTime = countHours(togglData)
-  totalTime = 0.0
-  for entry in tagTime:
-    totalTime += tagTime[entry]
-  printTimes()
-
+  if togglData == None or togglData == []:
+    print "No data recorded between "+startDate+" "+startTime+" and "+endDate+" "+endTime
+    line()
+  else:
+    tagTime = countHours(togglData)
+    totalTime = 0.0
+    for entry in tagTime:
+      totalTime += tagTime[entry]
+    printTimes()
+except:
+  print startDate+" Threw an error."
 
 
 
