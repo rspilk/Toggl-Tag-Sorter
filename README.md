@@ -1,7 +1,6 @@
 # Toggl Tag Sorter
 
-## The following might be outdated as I have not re-written the README
-## for the latest revision
+## The following might be outdated as I have not re-written the README for the latest revision
 
 This project will allow you to use Toggl like me. If you often find
 yourself needed to break up your time into tasks but can't be bothered
