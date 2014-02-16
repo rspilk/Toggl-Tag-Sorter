@@ -131,6 +131,7 @@ def main():
     if total_count > 50, divide total_count/50.0 and round up to nearest Int and break it up based on that.
     add up each individual request info here:
     https://github.com/toggl/toggl_api_docs/blob/master/reports/detailed.md
+    page: integer, default 1
 """
 
     printTimes(counted_time)
