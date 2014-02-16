@@ -91,13 +91,13 @@ def line():
 def printTimes(counted_time):
   d = time.strptime(startDate,'%Y-%m-%d')
   doW = datetime.date(d.tm_year,d.tm_mon,d.tm_mday).strftime('%a')
-  print(startDate+ " " + doW)
-  print("From : "+startDate)
-  print("To   : "+endDate)
+  print("%s %s") % (startDate, doW)
+  print("From : %s") % startDate
+  print("To   : %s") % endDate
   print("")
   for tag in counted_time:
-    print(str(ms_to_hr(counted_time[tag]['duration']))+" : "+tag+" Time")
-  print(str(ms_to_hr(totalTime(counted_time)))+" : Total Duration")
+    print(str(ms_to_hr(counted_time[tag]['duration']))+" : %s Time") % tag
+  print("%f : Total Duration") % ms_to_hr(totalTime(counted_time))
   line()
 
 def totalTime(counted_time_dict):
