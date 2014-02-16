@@ -123,6 +123,16 @@ def main():
     data = toggl_api_call(formatted_url)
     #print pretty_print(data)
     counted_time = count_time(data)
+
+"""
+    I need to actually break up the requests. They only do 50 entries per request 
+    "total_count":2,
+    "per_page":50
+    if total_count > 50, divide total_count/50.0 and round up to nearest Int and break it up based on that.
+    add up each individual request info here:
+    https://github.com/toggl/toggl_api_docs/blob/master/reports/detailed.md
+"""
+
     printTimes(counted_time)
 
 try:
