@@ -131,6 +131,7 @@ def main():
             call = toggl_api_call(formatted_url)
             for each in call['data']:
                 data_list.append(each)
+    #print ms_to_hr(data["total_grand"])
     #print pretty_print(data_list)
     counted_time = count_time(data_list)
     #print "counted"
