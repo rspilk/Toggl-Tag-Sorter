@@ -80,6 +80,7 @@ def count_time(togglData):
             Tags[tag] = {}
             Tags[tag]['duration'] = entry['dur']
     if togglData == [] or togglData == None:
+        Tags["NO TIME RECORDED"] = {}
         Tags["NO TIME RECORDED"]['duration'] = 0
     return Tags
     
@@ -132,10 +133,12 @@ def main():
                 data_list.append(each)
     counted_time = count_time(data_list)
     printTimes(counted_time)
+main()
 
+'''
 try:
     main()
 except:
     print "Something happened with %s to %s"% (startDate, endDate)
-
+'''
 
