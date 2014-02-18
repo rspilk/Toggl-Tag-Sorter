@@ -60,20 +60,19 @@ Finally, there is an option to input a start and end date (which still behaves s
 400 errors)
 
 to determine something similar to this:
-./toggl -d 2014-01-01 -e 2014-01-31
+./toggl -d 2013-01-01 -e 2013-01-31
 
 where -d is start date, -e is end date. The program uses the end date as start date unless otherwise told. Outputing:
 
-    From	:	2014-01-01
-    To	    :	2014-01-31
+    From	:	2013-01-01
+    To	:	2013-01-31
     
-    104.15	:	NORMAL OPERATIONS Time
-    5.33	:	MEETING Time
-    2.00	:	PROJECT Time
-    35.02	:	ADMINISTRATIVE Time
-    2.00	:	TAGLESS Time
-    148.50	:	Total Duration
+    126.96	:	NORMAL OPERATIONS Time
+    2.17	:	MEETING Time
+    37.04	:	ADMINISTRATIVE Time
+    166.16	:	Total Duration
     -------------------------------------
+
 
 For total hours worked in the month of Janurary
 
