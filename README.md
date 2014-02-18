@@ -63,6 +63,7 @@ to determine something similar to this:
 ./toggl -d 2014-01-01 -e 2014-01-31
 
 where -d is start date, -e is end date. The program uses the end date as start date unless otherwise told. Outputing:
+
     From	:	2014-01-01
     To	    :	2014-01-31
     
