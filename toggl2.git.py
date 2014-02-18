@@ -66,7 +66,7 @@ def toggl_api_call(url):
 
 def count_time(togglData):
     Tags = {}
-    for entry in togglData['data']:
+    for entry in togglData['data']: # Loop this for loop in another loop? for page in xrange(pages): ? where pages is an additional passed val? No. Im passing the data, somehow I have to count these elsewhere.
         tag = ''
         if entry['tags'] == []:
             tag = 'TAGLESS'
