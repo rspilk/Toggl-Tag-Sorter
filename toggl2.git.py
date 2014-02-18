@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #    Toggl Api Grabber - Grabs and sorts toggl data based on tags
 #    Copyright (C) 2013 -  Tyler Spilker - Gonzaga University
@@ -97,7 +97,7 @@ def printTimes(counted_time):
   print("")
   for tag in counted_time:
     print(str(ms_to_hr(counted_time[tag]['duration']))+" : %s Time") % tag
-  print("%f : Total Duration") % ms_to_hr(totalTime(counted_time))
+  print("%s : Total Duration") % str(ms_to_hr(totalTime(counted_time)))
   line()
 
 def totalTime(counted_time_dict):
@@ -123,8 +123,7 @@ def main():
     data = toggl_api_call(formatted_url)
     #print pretty_print(data)
     counted_time = count_time(data)
-
-"""
+    """
     I need to actually break up the requests. They only do 50 entries per request 
     "total_count":2,
     "per_page":50
@@ -132,8 +131,7 @@ def main():
     add up each individual request info here:
     https://github.com/toggl/toggl_api_docs/blob/master/reports/detailed.md
     page: integer, default 1
-"""
-
+    """
     printTimes(counted_time)
 
 try:
