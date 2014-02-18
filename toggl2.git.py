@@ -123,7 +123,6 @@ def main():
     formatted_url = makeURL(startDate,endDate,workspace_id,user_agent,1)
     data = toggl_api_call(formatted_url)
     data_list = data['data']
-    #print pretty_print(data_list)
     if data['total_count'] > 50:
         pages = Decimal(data['total_count']/entries_per_page).quantize(Decimal('0'),rounding=ROUND_UP)
         for page in xrange(pages-1):
@@ -131,19 +130,7 @@ def main():
             call = toggl_api_call(formatted_url)
             for each in call['data']:
                 data_list.append(each)
-    #print ms_to_hr(data["total_grand"])
-    #print pretty_print(data_list)
     counted_time = count_time(data_list)
-    #print "counted"
-    """
-    I need to actually break up the requests. They only do 50 entries per request 
-    "total_count":2,
-    "per_page":50
-    if total_count > 50, divide total_count/50.0 and round up to nearest Int and break it up based on that.
-    add up each individual request info here:
-    https://github.com/toggl/toggl_api_docs/blob/master/reports/detailed.md
-    page: integer, default 1
-    """
     printTimes(counted_time)
 
 try:
