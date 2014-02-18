@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #    Toggl Api Grabber - Grabs and sorts toggl data based on tags
 #    Copyright (C) 2013 -  Tyler Spilker - Gonzaga University
@@ -18,7 +18,7 @@
 
 import urllib2, base64, simplejson, json, time, argparse, datetime
 import config
-from decimal import Decimal, Rounded, ROUND_HALF_UP
+from decimal import Decimal, Rounded, ROUND_HALF_UP, ROUND_UP
 
 password = '%s:%s' % (config.API_TOKEN, config.API_PASSWORD)
 user_agent = config.USER_AGENT
@@ -26,6 +26,7 @@ workspace_id = config.WORKSPACE
 uid = config.UID
 url_base = config.URL_BASE
 currentDate = time.strftime('%Y-%m-%d')
+entries_per_page = 50.0
 
 # -- Command Line Options -- #
 ARG=argparse.ArgumentParser(\
@@ -51,8 +52,8 @@ if endDate == None:
 
 
 
-def makeURL(startDate, endDate, workspace_id,user_agent):
-    url = '%sworkspace_id=%s&since=%s&until=%s&user_agent=%s&user_ids=%s' % (url_base,workspace_id, startDate, endDate, user_agent, uid)
+def makeURL(startDate, endDate, workspace_id,user_agent,page_num):
+    url = '%sworkspace_id=%s&since=%s&until=%s&user_agent=%s&user_ids=%s&page=%s' % (url_base,workspace_id, startDate, endDate, user_agent, uid, page_num)
     return url
 
 def toggl_api_call(url):
@@ -66,7 +67,7 @@ def toggl_api_call(url):
 
 def count_time(togglData):
     Tags = {}
-    for entry in togglData['data']:
+    for entry in togglData:
         tag = ''
         if entry['tags'] == []:
             tag = 'TAGLESS'
@@ -78,7 +79,8 @@ def count_time(togglData):
         else:
             Tags[tag] = {}
             Tags[tag]['duration'] = entry['dur']
-    if togglData['data'] == '' or togglData['data'] == None:
+    if togglData == [] or togglData == None:
+        Tags["NO TIME RECORDED"] = {}
         Tags["NO TIME RECORDED"]['duration'] = 0
     return Tags
     
@@ -91,13 +93,13 @@ def line():
 def printTimes(counted_time):
   d = time.strptime(startDate,'%Y-%m-%d')
   doW = datetime.date(d.tm_year,d.tm_mon,d.tm_mday).strftime('%a')
-  print(startDate+ " " + doW)
-  print("From : "+startDate)
-  print("To   : "+endDate)
+  print("%s %s") % (startDate, doW)
+  print("From\t:\t%s") % startDate
+  print("To\t:\t%s") % endDate
   print("")
   for tag in counted_time:
-    print(str(ms_to_hr(counted_time[tag]['duration']))+" : "+tag+" Time")
-  print(str(ms_to_hr(totalTime(counted_time)))+" : Total Duration")
+    print(str(ms_to_hr(counted_time[tag]['duration']))+"\t:\t%s Time") % tag
+  print("%s\t:\tTotal Duration") % str(ms_to_hr(totalTime(counted_time)))
   line()
 
 def totalTime(counted_time_dict):
@@ -119,15 +121,24 @@ def test_data():
     print ms_to_hr(count_time(data)['NORMAL OPERATIONS']['duration'])
 
 def main():
-    formatted_url = makeURL(startDate,endDate,workspace_id,user_agent)
+    formatted_url = makeURL(startDate,endDate,workspace_id,user_agent,1)
     data = toggl_api_call(formatted_url)
-    #print pretty_print(data)
-    counted_time = count_time(data)
+    data_list = data['data']
+    if data['total_count'] > 50:
+        pages = Decimal(data['total_count']/entries_per_page).quantize(Decimal('0'),rounding=ROUND_UP)
+        for page in xrange(pages-1):
+            formatted_url = makeURL(startDate,endDate,workspace_id,user_agent,page+2)
+            call = toggl_api_call(formatted_url)
+            for each in call['data']:
+                data_list.append(each)
+    counted_time = count_time(data_list)
     printTimes(counted_time)
+main()
 
+'''
 try:
     main()
 except:
     print "Something happened with %s to %s"% (startDate, endDate)
-
+'''
 
