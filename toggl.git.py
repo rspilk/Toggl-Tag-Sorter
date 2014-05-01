@@ -39,13 +39,16 @@ ARG=argparse.ArgumentParser(\
 
 ARG.add_argument('-d', '--start_date', help="Start Date, default: Current Date. Format: YYYY-MM-DD", dest="startDate", default=currentDate)
 ARG.add_argument('-e', '--end_date', help="End Date, default: Current Date. Format: YYYY-MM-DD", dest="endDate", default=None)
-
+ARG.add_argument('-t', '--total', help="Just output totals for days", action='store_true', default=False)
+ARG.add_argument('-q', '--quiet', help="Just quietly outputs. Requires -t to work", action='store_true', default=False)
 
 # -- Parsing passed arguments to variables -- #
 args=ARG.parse_args()
 
 startDate = args.startDate
 endDate = args.endDate
+total = args.total
+quiet = args.quiet
 if endDate == None:
     endDate = startDate
 
@@ -102,6 +105,18 @@ def printTimes(counted_time):
   print("%s\t:\tTotal Duration") % str(ms_to_hr(totalTime(counted_time)))
   line()
 
+def printTotal(counted_time):
+  d = time.strptime(startDate,'%Y-%m-%d')
+  doW = datetime.date(d.tm_year,d.tm_mon,d.tm_mday).strftime('%a')
+  if quiet == False:
+    print("%s %s:\tFrom %s to %s") % (startDate,doW,startDate,endDate)
+    print("%s\t:\tTotal Duration") % str(ms_to_hr(totalTime(counted_time)))
+    line()
+  elif quiet == True:
+    print("%s\t%s") % (startDate,str(ms_to_hr(totalTime(counted_time))))
+
+
+
 def totalTime(counted_time_dict):
     time = Decimal(0.0)
     for entry in counted_time_dict:
@@ -132,7 +147,10 @@ def main():
             for each in call['data']:
                 data_list.append(each)
     counted_time = count_time(data_list)
-    printTimes(counted_time)
+    if total == False:
+        printTimes(counted_time)
+    elif total == True:
+        printTotal(counted_time)
 main()
 
 '''

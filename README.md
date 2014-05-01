@@ -49,12 +49,14 @@ time. That is, to get a full days work.
 The time can also be captured retroactively by scripting a bash for loop
 like this:
 
-    NUMDAYS=365
+    DATE=2014-02-01
+    NUMDAYS=$(( ( $(date +%s) - $(date -d "$DATE" +%s) ) /(24 * 60 * 60 ) ))
     for i in {$NUMDAYS..1}
     do
         ./toggl.py -d $(date --date="$i days ago" +%Y-%m-%d)
         sleep 5
     done >> output.file
+
 
 Finally, there is an option to input a start and end date (which still behaves strangely for some time periods. getting
 400 errors)
